@@ -1,7 +1,8 @@
-import React from 'react';
-import { Star, Users, Bed, Bath, Wifi, Car, Waves, Flame } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Users, Bed, Bath, Wifi, Car, Waves, Flame, Eye } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { CabinReservationModal } from '../booking/CabinReservationModal';
 import { formatCurrency } from '../../lib/utils';
 import type { Cabin } from '../../types';
 
@@ -76,14 +77,47 @@ const amenityIcons: Record<string, React.ReactNode> = {
 };
 
 export const CabinGrid: React.FC = () => {
+  const [selectedCabin, setSelectedCabin] = useState<Cabin | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [visibleCabins, setVisibleCabins] = useState<number[]>([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0');
+            setVisibleCabins(prev => [...new Set([...prev, index])]);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const cabinElements = document.querySelectorAll('[data-cabin-card]');
+    cabinElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleReserveCabin = (cabin: Cabin) => {
+    setSelectedCabin(cabin);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCabin(null);
+  };
+
   return (
     <section id="cabins" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in-up">
             Nuestras Cabañas
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             Descubre nuestra selección de cabañas cuidadosamente diseñadas para ofrecerte 
             la mejor experiencia de descanso en contacto con la naturaleza.
           </p>
@@ -91,24 +125,59 @@ export const CabinGrid: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {mockCabins.map((cabin, index) => (
-            <Card key={cabin.id} hover className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+            <Card 
+              key={cabin.id} 
+              hover 
+              className={`group cursor-pointer transform transition-all duration-500 ${
+                visibleCabins.includes(index) 
+                  ? 'translate-y-0 opacity-100' 
+                  : 'translate-y-8 opacity-0'
+              }`}
+              data-cabin-card
+              data-index={index}
+            >
               {/* Image */}
               <div className="relative h-48 overflow-hidden">
                 <img
                   src={cabin.images[0]}
                   alt={cabin.name}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center space-x-1">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                {/* Rating Badge */}
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center space-x-1 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                   <Star size={14} className="text-yellow-400 fill-current" />
                   <span className="text-sm font-medium">{cabin.rating}</span>
+                </div>
+
+                {/* Quick View Button */}
+                <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transform -translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                  <button className="bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-colors duration-200">
+                    <Eye size={16} className="text-gray-700" />
+                  </button>
+                </div>
+
+                {/* Overlay Reserve Button */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleReserveCabin(cabin)}
+                    className="transform scale-90 group-hover:scale-100 transition-transform duration-300"
+                  >
+                    Ver Detalles y Reservar
+                  </Button>
                 </div>
               </div>
 
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">{cabin.name}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors duration-200">
+                    {cabin.name}
+                  </h3>
                   <p className="text-gray-600 text-sm line-clamp-2">{cabin.description}</p>
+                  <p className="text-gray-500 text-sm mt-1">{cabin.location}</p>
                 </div>
 
                 <div className="flex items-center justify-between text-sm text-gray-500">
@@ -128,7 +197,7 @@ export const CabinGrid: React.FC = () => {
 
                 <div className="flex flex-wrap gap-2">
                   {cabin.amenities.slice(0, 4).map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1 text-xs text-gray-600">
+                    <div key={amenity} className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1 text-xs text-gray-600 hover:bg-primary-100 hover:text-primary-700 transition-colors duration-200">
                       {amenityIcons[amenity]}
                       <span>{amenity}</span>
                     </div>
@@ -143,7 +212,12 @@ export const CabinGrid: React.FC = () => {
                   </span>
                   <span className="text-gray-500 text-sm">/noche</span>
                 </div>
-                <Button variant="primary" size="sm">
+                <Button 
+                  variant="primary" 
+                  size="sm"
+                  onClick={() => handleReserveCabin(cabin)}
+                  className="transform hover:scale-105 transition-transform duration-200"
+                >
                   Reservar
                 </Button>
               </CardFooter>
@@ -152,11 +226,18 @@ export const CabinGrid: React.FC = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" className="transform hover:scale-105 transition-transform duration-200">
             Ver Todas las Cabañas
           </Button>
         </div>
       </div>
+
+      {/* Reservation Modal */}
+      <CabinReservationModal
+        cabin={selectedCabin}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </section>
   );
 };
