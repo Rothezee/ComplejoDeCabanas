@@ -1,5 +1,4 @@
 import React from 'react';
-import { cn } from '../../lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
@@ -10,7 +9,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
-  className,
+  className = '',
   children,
   ...props
 }) => {
@@ -29,11 +28,10 @@ export const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg',
   };
 
+  const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`;
+
   return (
-    <button
-      className={cn(baseClasses, variants[variant], sizes[size], className)}
-      {...props}
-    >
+    <button className={classes} {...props}>
       {children}
     </button>
   );

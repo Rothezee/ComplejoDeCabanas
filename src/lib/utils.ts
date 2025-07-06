@@ -1,7 +1,8 @@
-import { type ClassValue, clsx } from 'clsx';
+import { type ClassValue } from 'clsx';
 
+// Simple className utility without clsx dependency
 export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
+  return inputs.filter(Boolean).join(' ');
 }
 
 export function formatCurrency(amount: number): string {

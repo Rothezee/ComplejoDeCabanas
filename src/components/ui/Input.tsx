@@ -1,5 +1,4 @@
 import React from 'react';
-import { cn } from '../../lib/utils';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -11,9 +10,14 @@ export const Input: React.FC<InputProps> = ({
   label,
   error,
   icon,
-  className,
+  className = '',
   ...props
 }) => {
+  const baseClasses = 'block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 transition-colors duration-200';
+  const iconClasses = icon ? 'pl-10' : '';
+  const errorClasses = error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '';
+  const inputClasses = `${baseClasses} ${iconClasses} ${errorClasses} ${className}`;
+
   return (
     <div className="space-y-1">
       {label && (
@@ -29,15 +33,7 @@ export const Input: React.FC<InputProps> = ({
             </div>
           </div>
         )}
-        <input
-          className={cn(
-            'block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 transition-colors duration-200',
-            icon && 'pl-10',
-            error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
-            className
-          )}
-          {...props}
-        />
+        <input className={inputClasses} {...props} />
       </div>
       {error && (
         <p className="text-sm text-red-600">{error}</p>
