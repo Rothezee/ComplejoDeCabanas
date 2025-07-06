@@ -74,6 +74,11 @@ const amenityIcons: Record<string, React.ReactNode> = {
   'Estacionamiento': <Car size={16} />,
   'Piscina': <Waves size={16} />,
   'Parrilla': <Flame size={16} />,
+  'Aire Acondicionado': <Waves size={16} />,
+  'Cocina Completa': <Flame size={16} />,
+  'Jacuzzi': <Waves size={16} />,
+  'Vista al Lago': <Eye size={16} />,
+  'Sala de Juegos': <Users size={16} />
 };
 
 export const CabinGrid: React.FC = () => {
@@ -133,7 +138,7 @@ export const CabinGrid: React.FC = () => {
                   ? 'translate-y-0 opacity-100' 
                   : 'translate-y-8 opacity-0'
               }`}
-              data-cabin-card
+              data-cabin-card="true"
               data-index={index}
             >
               {/* Image */}
@@ -198,7 +203,7 @@ export const CabinGrid: React.FC = () => {
                 <div className="flex flex-wrap gap-2">
                   {cabin.amenities.slice(0, 4).map((amenity) => (
                     <div key={amenity} className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1 text-xs text-gray-600 hover:bg-primary-100 hover:text-primary-700 transition-colors duration-200">
-                      {amenityIcons[amenity]}
+                      {amenityIcons[amenity] || <Wifi size={16} />}
                       <span>{amenity}</span>
                     </div>
                   ))}
@@ -233,11 +238,13 @@ export const CabinGrid: React.FC = () => {
       </div>
 
       {/* Reservation Modal */}
-      <CabinReservationModal
-        cabin={selectedCabin}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      {selectedCabin && (
+        <CabinReservationModal
+          cabin={selectedCabin}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </section>
   );
 };
